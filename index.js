@@ -9,7 +9,8 @@ class ServerConnectionOptions {
       mqttPassword: null,
       hardwareType: null,
       serialNumber: null,
-      whitelist: []
+      publishWhitelist: [],
+      subscribeWhitelist: []
     };
   }
 
@@ -64,7 +65,7 @@ class ServerConnection {
     localClient.on('message', function (topic, message) {
       console.log('MQTT Local', 'Message', topic, message.toString());
 
-      if(parent.checkWhitelist(topic)) {
+      if(parent.checkWhitelist(this.publishWhitelist, topic)) {
         remoteClient.publish(topic, message);
       } else {
         console.log('MQTT Local', 'Message not whitelisted');
@@ -92,7 +93,7 @@ class ServerConnection {
     remoteClient.on('message', function (topic, message) {
       console.log('MQTT Remote', 'Message', topic, message.toString());
 
-      if(parent.checkWhitelist(topic)) {
+      if(parent.checkWhitelist(this.subscribeWhitelist, topic)) {
         localClient.publish(topic, message);
       } else {
         console.log('MQTT Remote', 'Message not whitelisted');
@@ -140,9 +141,9 @@ class ServerConnection {
     };
   }
 
-  checkWhitelist(topic) {
-    for(var i in this.whitelist) {
-      var pattern = new UrlPattern(this.whitelist[i]);
+  checkWhitelist(whitelist, topic) {
+    for(var i in whitelist) {
+      var pattern = new UrlPattern(whitelist[i]);
 
       if(pattern.match(topic)) {
         return true;
