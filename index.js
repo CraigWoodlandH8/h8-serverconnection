@@ -9,13 +9,13 @@ class ServerConnectionOptions {
       mqttPassword: null,
       hardwareType: null,
       serialNumber: null,
-      whitelist: null
+      whitelist: []
     };
   }
 
   set(key, value) {
     if(this.options[key] === undefined) {
-      throw "Invalid key provided";
+      throw "Invalid key provided (" + key + ")";
     }
 
     this.options[key] = value;
@@ -23,7 +23,7 @@ class ServerConnectionOptions {
 
   get(key) {
     if(this.options[key] === undefined) {
-      throw "Invalid key provided";
+      throw "Invalid key requested (" + key + ")";
     }
 
     return this.options[key];
