@@ -18,6 +18,10 @@ class ServerConnectionOptions {
       throw "Invalid key provided (" + key + ")";
     }
 
+    if(value === undefined) {
+      throw "Invalid value provided, undefined (" + key + ")";
+    }
+
     this.options[key] = value;
   }
 
