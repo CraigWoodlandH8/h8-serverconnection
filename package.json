@@ -1,0 +1,23 @@
+{
+  "name": "h8-serverconnection",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CraigWoodlandH8/h8-serverconnection.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CraigWoodlandH8/h8-serverconnection/issues"
+  },
+  "homepage": "https://github.com/CraigWoodlandH8/h8-serverconnection#readme",
+  "dependencies": {
+    "mqtt": "^4.2.6",
+    "url-pattern": "^1.0.3"
+  }
+}
