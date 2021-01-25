@@ -66,6 +66,8 @@ class ServerConnection {
 
       if(parent.checkWhitelist(topic)) {
         localClient.publish(topic, message);
+      } else {
+        console.log('MQTT Local', 'Message not whitelisted');
       }
     });
 
@@ -92,6 +94,8 @@ class ServerConnection {
 
       if(parent.checkWhitelist(topic)) {
         localClient.publish(topic, message);
+      } else {
+        console.log('MQTT Remote', 'Message not whitelisted');
       }
 
       var infoPattern = new UrlPattern(':hardwareType/:serialNumber/device-info/request/(:id)');
