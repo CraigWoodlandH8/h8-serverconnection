@@ -137,7 +137,6 @@ class ServerConnection {
       var pattern = new UrlPattern(this.whitelist[i]);
 
       if(pattern.match(topic)) {
-        console.log('OK');
         return true;
       }
     }
