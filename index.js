@@ -100,7 +100,7 @@ class ServerConnection {
         console.log('MQTT Remote', 'Message not whitelisted');
       }
 
-      var infoPattern = new UrlPattern(':hardwareType/:serialNumber/device-info/request/(:id)');
+      var infoPattern = new UrlPattern(':hardwareType/:serialNumber/device-info/request(/:id)');
 
       if(infoPattern.match(topic)) {
         var params = infoPattern.match(topic);
@@ -114,7 +114,7 @@ class ServerConnection {
         remoteClient.publish(topic, JSON.stringify(parent.getDeviceRegistration()));
       }
 
-      var presencePattern = new UrlPattern(':hardwareType/:serialNumber/presence-check/request/(:id)');
+      var presencePattern = new UrlPattern(':hardwareType/:serialNumber/presence-check/request(/:id)');
 
       if(presencePattern.match(topic)) {
         var params = presencePattern.match(topic);
