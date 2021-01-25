@@ -66,7 +66,7 @@ class ServerConnection {
     localClient.on('message', function (topic, message) {
       console.log('MQTT Local', 'Message', topic, message.toString());
 
-      if(parent.checkWhitelist(this.publishWhitelist, topic)) {
+      if(parent.checkWhitelist(parent.publishWhitelist, topic)) {
         remoteClient.publish(topic, message);
       } else {
         console.log('MQTT Local', 'Message not whitelisted');
@@ -94,7 +94,7 @@ class ServerConnection {
     remoteClient.on('message', function (topic, message) {
       console.log('MQTT Remote', 'Message', topic, message.toString());
 
-      if(parent.checkWhitelist(this.subscribeWhitelist, topic)) {
+      if(parent.checkWhitelist(parent.subscribeWhitelist, topic)) {
         localClient.publish(topic, message);
       } else {
         console.log('MQTT Remote', 'Message not whitelisted');
