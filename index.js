@@ -43,7 +43,8 @@ class ServerConnection {
 
     this.hardwareType = options.get('hardwareType');
     this.serialNumber = options.get('serialNumber');
-    this.whitelist = options.get('whitelist');
+    this.publishWhitelist = options.get('publishWhitelist');
+    this.subscribeWhitelist = options.get('subscribeWhitelist');
 
     this.mqttEndpoint = options.get('mqttEndpoint');
     this.mqttUsername = options.get('mqttUsername');
