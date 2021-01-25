@@ -57,8 +57,8 @@ class ServerConnection {
     localClient.on('connect', () => {
       console.log('MQTT Local', 'Connected');
 
-      remoteClient.subscribe(parent.hardwareType + '/' + parent.serialNumber + '/#');
-      remoteClient.subscribe('coordinator/#');
+      localClient.subscribe(parent.hardwareType + '/' + parent.serialNumber + '/#');
+      localClient.subscribe('coordinator/#');
     });
 
     localClient.on('message', function (topic, message) {
