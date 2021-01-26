@@ -50,11 +50,13 @@ class ServerConnection {
     this.mqttUsername = options.get('mqttUsername');
     this.mqttPassword = options.get('mqttPassword');
 
-    var parent = this;
+    this.startedAt = new Date().getTime();
+
+    var parent = this, localClient = null, globalClient = null;
 
     console.log('MQTT Local', 'Connecting');
 
-    var localClient = mqtt.connect('mqtt://localhost');
+    localClient = mqtt.connect('mqtt://localhost');
 
     localClient.on('connect', () => {
       console.log('MQTT Local', 'Connected');
@@ -71,67 +73,80 @@ class ServerConnection {
       } else {
         console.log('MQTT Local', 'Message not whitelisted');
       }
+
+      var pattern = new UrlPattern(':hardwareType/:serialNumber/reconnect');
+
+      if(pattern.match(topic)) {
+        console.log('MQTT Local', 'Initiating reconnection to global');
+
+        try {
+          globalClient.reconnect();
+        } catch(err) {
+          console.error('MQTT Local', 'Error initiating reconnection to global', err);
+        }
+      }
     });
 
-    console.log('MQTT Remote', 'Connecting', this.mqttEndpoint, this.serialNumber);
+    console.log('MQTT Global', 'Connecting', this.mqttEndpoint, this.serialNumber);
 
     var options = {
       username: this.mqttUsername,
       password:  this.mqttPassword
     };
 
-    var remoteClient  = mqtt.connect(this.mqttEndpoint, options)
+    globalClient  = mqtt.connect(this.mqttEndpoint, options)
 
-    remoteClient.on('connect', function () {
-      console.log('MQTT Remote', 'Connected');
+    globalClient.on('connect', function () {
+      console.log('MQTT Global', 'Connected');
 
-      remoteClient.subscribe(parent.hardwareType + '/' + parent.serialNumber + '/#');
-      remoteClient.subscribe('coordinator/#');
+      globalClient.subscribe(parent.hardwareType + '/' + parent.serialNumber + '/#');
+      globalClient.subscribe('coordinator/#');
 
-      remoteClient.publish(parent.hardwareType + '/' + parent.serialNumber + '/register-device', JSON.stringify(parent.getDeviceRegistration()));
+      globalClient.publish(parent.hardwareType + '/' + parent.serialNumber + '/register-device', JSON.stringify(parent.getDeviceRegistration()));
     })
 
-    remoteClient.on('message', function (topic, message) {
-      console.log('MQTT Remote', 'Message', topic, message.toString());
+    globalClient.on('message', function (topic, message) {
+      console.log('MQTT Global', 'Message', topic, message.toString());
 
       if(parent.checkWhitelist(parent.subscribeWhitelist, topic)) {
         localClient.publish(topic, message);
       } else {
-        console.log('MQTT Remote', 'Message not whitelisted');
+        console.log('MQTT Global', 'Message not whitelisted');
       }
 
-      var infoPattern = new UrlPattern(':hardwareType/:serialNumber/device-info/request(/:id)');
+      // var infoPattern = new UrlPattern(':hardwareType/:serialNumber/device-info/request(/:id)');
+      //
+      // if(infoPattern.match(topic)) {
+      //   var params = infoPattern.match(topic);
+      //
+      //   var topic = parent.hardwareType + '/' + parent.serialNumber + '/device-info/response';
+      //
+      //   if(params.id !== undefined) {
+      //     topic += '/' + params.id;
+      //   }
+      //
+      //   remoteClient.publish(topic, JSON.stringify(parent.getDeviceRegistration()));
+      // }
 
-      if(infoPattern.match(topic)) {
-        var params = infoPattern.match(topic);
-
-        var topic = parent.hardwareType + '/' + parent.serialNumber + '/device-info/response';
-
-        if(params.id !== undefined) {
-          topic += '/' + params.id;
-        }
-
-        remoteClient.publish(topic, JSON.stringify(parent.getDeviceRegistration()));
-      }
-
-      var presencePattern = new UrlPattern(':hardwareType/:serialNumber/presence-check/request(/:id)');
+      var presencePattern = new UrlPattern(':hardwareType/:serialNumber/status/request(/:id)');
 
       if(presencePattern.match(topic)) {
         var params = presencePattern.match(topic);
 
-        var topic = parent.hardwareType + '/' + parent.serialNumber + '/presence-check/response';
+        var topic = parent.hardwareType + '/' + parent.serialNumber + '/status/response';
 
         if(params.id !== undefined) {
           topic += '/' + params.id;
         }
 
-        remoteClient.publish(topic, JSON.stringify({
+        globalClient.publish(topic, JSON.stringify({
+          uptime: (parent.startedAt - new Date().getTime()),
           timestamp: new Date().getTime()
         }));
       }
 
       if(topic == 'coordinator/device-info/request') {
-        remoteClient.publish(parent.hardwareType + '/' + parent.serialNumber + '/register-device', JSON.stringify(parent.getDeviceRegistration()));
+        globalClient.publish(parent.hardwareType + '/' + parent.serialNumber + '/register-device', JSON.stringify(parent.getDeviceRegistration()));
       }
     })
   }
