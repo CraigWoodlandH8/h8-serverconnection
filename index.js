@@ -69,7 +69,7 @@ class ServerConnection {
       console.log('MQTT Local', 'Message', topic, message.toString());
 
       if(parent.checkWhitelist(parent.publishWhitelist, topic)) {
-        remoteClient.publish(topic, message);
+        globalClient.publish(topic, message);
       } else {
         console.log('MQTT Local', 'Message not whitelisted');
       }
