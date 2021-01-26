@@ -80,7 +80,9 @@ class ServerConnection {
         console.log('MQTT Local', 'Initiating reconnection to global');
 
         try {
-          globalClient.reconnect();
+          globalClient.end();
+
+          setTimeout(() => { globalClient.reconnect(); }, 1000);
         } catch(err) {
           console.error('MQTT Local', 'Error initiating reconnection to global', err);
         }
@@ -94,7 +96,7 @@ class ServerConnection {
       password:  this.mqttPassword
     };
 
-    globalClient  = mqtt.connect(this.mqttEndpoint, options)
+    globalClient = mqtt.connect(this.mqttEndpoint, options)
 
     globalClient.on('connect', function () {
       console.log('MQTT Global', 'Connected');
@@ -104,6 +106,40 @@ class ServerConnection {
 
       globalClient.publish(parent.hardwareType + '/' + parent.serialNumber + '/register-device', JSON.stringify(parent.getDeviceRegistration()));
     })
+
+    globalClient.on('reconnect', () => {
+      console.log('MQTT Global', 'Event', 'Reconnect');
+    });
+
+    // setInterval(() => {
+    //   if(globalClient.connected) {
+    //     console.log('Global client is connected');
+    //   } else {
+    //     console.log('Global client is NOT connected');
+    //   }
+    //
+    //   if(globalClient.reconnecting) {
+    //     console.log('Global client is reconnecting');
+    //   } else {
+    //     console.log('Global client is NOT reconnecting');
+    //   }
+    // }, 2500);
+
+    globalClient.on('close', () => {
+      console.log('MQTT Global', 'Event', 'Close');
+    });
+
+    globalClient.on('disconnect', () => {
+      console.log('MQTT Global', 'Event', 'Disconnect');
+    });
+
+    globalClient.on('offline', () => {
+      console.log('MQTT Global', 'Event', 'Offline');
+    });
+
+    globalClient.on('error', (error) => {
+      console.log('MQTT Global', 'Event', 'Error', error);
+    });
 
     globalClient.on('message', function (topic, message) {
       console.log('MQTT Global', 'Message', topic, message.toString());
@@ -140,7 +176,7 @@ class ServerConnection {
         }
 
         globalClient.publish(topic, JSON.stringify({
-          uptime: (parent.startedAt - new Date().getTime()),
+          uptime: (new Date().getTime() - parent.startedAt),
           timestamp: new Date().getTime()
         }));
       }
