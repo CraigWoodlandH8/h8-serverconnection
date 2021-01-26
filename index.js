@@ -10,7 +10,8 @@ class ServerConnectionOptions {
       hardwareType: null,
       serialNumber: null,
       publishWhitelist: [],
-      subscribeWhitelist: []
+      subscribeWhitelist: [],
+      connectionId: ''
     };
   }
 
@@ -45,6 +46,7 @@ class ServerConnection {
     this.serialNumber = options.get('serialNumber');
     this.publishWhitelist = options.get('publishWhitelist');
     this.subscribeWhitelist = options.get('subscribeWhitelist');
+    this.connectionId = options.get('connectionId');
 
     this.mqttEndpoint = options.get('mqttEndpoint');
     this.mqttUsername = options.get('mqttUsername');
@@ -74,17 +76,27 @@ class ServerConnection {
         console.log('MQTT Local', 'Message not whitelisted');
       }
 
-      var pattern = new UrlPattern(':hardwareType/:serialNumber/reconnect');
+      var pattern1 = new UrlPattern(':hardwareType/:serialNumber/' + parent.connectionId + '/disconnect');
 
-      if(pattern.match(topic)) {
-        console.log('MQTT Local', 'Initiating reconnection to global');
+      if(pattern1.match(topic)) {
+        console.log('MQTT Local', 'Initiating disconnection from global');
 
         try {
-          globalClient.end();
-
-          setTimeout(() => { globalClient.reconnect(); }, 1000);
+          globalClient.end(true);
         } catch(err) {
-          console.error('MQTT Local', 'Error initiating reconnection to global', err);
+          console.error('MQTT Local', 'Error initiating disconnection from global', err);
+        }
+      }
+
+      var pattern2 = new UrlPattern(':hardwareType/:serialNumber/' + parent.connectionId + '/connect');
+
+      if(pattern2.match(topic)) {
+        console.log('MQTT Local', 'Initiating connection to global');
+
+        try {
+          globalClient.reconnect();
+        } catch(err) {
+          console.error('MQTT Local', 'Error initiating connection to global', err);
         }
       }
     });
