@@ -52,9 +52,22 @@ class ServerConnection {
     this.mqttUsername = options.get('mqttUsername');
     this.mqttPassword = options.get('mqttPassword');
 
-    this.startedAt = new Date().getTime();
+    this.startedAt = null;
 
-    var parent = this, localClient = null, globalClient = null;
+    var parent = this, localClient = null, globalClient = null, startedAtCounter = 0;
+
+    var startedAtInterval = setInterval(() => {
+      if(new Date().getTime() > 1609459200000) {
+        parent.startedAt = new Date().getTime();
+        clearInterval(startedAtInterval);
+      } else {
+        startedAtCounter += 1;
+
+        if(startedAtCounter >= 10) {
+          clearInterval(startedAtInterval);
+        }
+      }
+    }, 500);
 
     console.log('MQTT Local', 'Connecting');
 
@@ -111,7 +124,7 @@ class ServerConnection {
     globalClient = mqtt.connect(this.mqttEndpoint, options)
 
     globalClient.on('connect', function () {
-      console.log('MQTT Global', 'Connected');
+      console.log('MQTT Global', 'Event', 'Connect');
 
       globalClient.subscribe(parent.hardwareType + '/' + parent.serialNumber + '/#');
       globalClient.subscribe('coordinator/#');
@@ -122,20 +135,6 @@ class ServerConnection {
     globalClient.on('reconnect', () => {
       console.log('MQTT Global', 'Event', 'Reconnect');
     });
-
-    // setInterval(() => {
-    //   if(globalClient.connected) {
-    //     console.log('Global client is connected');
-    //   } else {
-    //     console.log('Global client is NOT connected');
-    //   }
-    //
-    //   if(globalClient.reconnecting) {
-    //     console.log('Global client is reconnecting');
-    //   } else {
-    //     console.log('Global client is NOT reconnecting');
-    //   }
-    // }, 2500);
 
     globalClient.on('close', () => {
       console.log('MQTT Global', 'Event', 'Close');
@@ -154,7 +153,7 @@ class ServerConnection {
     });
 
     globalClient.on('message', function (topic, message) {
-      console.log('MQTT Global', 'Message', topic, message.toString());
+      console.log('MQTT Global', 'Event', 'Message', topic, message.toString());
 
       if(parent.checkWhitelist(parent.subscribeWhitelist, topic)) {
         localClient.publish(topic, message);
@@ -162,33 +161,19 @@ class ServerConnection {
         console.log('MQTT Global', 'Message not whitelisted');
       }
 
-      // var infoPattern = new UrlPattern(':hardwareType/:serialNumber/device-info/request(/:id)');
-      //
-      // if(infoPattern.match(topic)) {
-      //   var params = infoPattern.match(topic);
-      //
-      //   var topic = parent.hardwareType + '/' + parent.serialNumber + '/device-info/response';
-      //
-      //   if(params.id !== undefined) {
-      //     topic += '/' + params.id;
-      //   }
-      //
-      //   remoteClient.publish(topic, JSON.stringify(parent.getDeviceRegistration()));
-      // }
-
-      var presencePattern = new UrlPattern(':hardwareType/:serialNumber/status/request(/:id)');
+      var presencePattern = new UrlPattern(':hardwareType/:serialNumber/state/request(/:id)');
 
       if(presencePattern.match(topic)) {
         var params = presencePattern.match(topic);
 
-        var topic = parent.hardwareType + '/' + parent.serialNumber + '/status/response';
+        var topic = parent.hardwareType + '/' + parent.serialNumber + '/state/response';
 
         if(params.id !== undefined) {
           topic += '/' + params.id;
         }
 
         globalClient.publish(topic, JSON.stringify({
-          uptime: (new Date().getTime() - parent.startedAt),
+          uptime: (parent.startedAt !== null ? (new Date().getTime() - parent.startedAt) : null),
           timestamp: new Date().getTime()
         }));
       }
