@@ -57,6 +57,7 @@ class ServerConnection {
     var parent = this, localClient = null, globalClient = null, startedAtCounter = 0, startedAtOffset = 0;
 
     var startedAtInterval = setInterval(() => {
+      startedAtCounter += 1;
       startedAtOffset += 500;
 
       if(new Date().getTime() > 1609459200000) {
@@ -64,8 +65,6 @@ class ServerConnection {
         clearInterval(startedAtInterval);
         console.log('Server Connection', 'Timestamp Obtained', startedAtCounter, startedAtOffset);
       } else {
-        startedAtCounter += 1;
-
         if(startedAtCounter >= 10) {
           clearInterval(startedAtInterval);
         }
