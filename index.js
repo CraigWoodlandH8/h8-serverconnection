@@ -54,12 +54,15 @@ class ServerConnection {
 
     this.startedAt = null;
 
-    var parent = this, localClient = null, globalClient = null, startedAtCounter = 0;
+    var parent = this, localClient = null, globalClient = null, startedAtCounter = 0, startedAtOffset = 0;
 
     var startedAtInterval = setInterval(() => {
+      startedAtOffset += 500;
+
       if(new Date().getTime() > 1609459200000) {
-        parent.startedAt = new Date().getTime();
+        parent.startedAt = (new Date().getTime() - startedAtOffset);
         clearInterval(startedAtInterval);
+        console.log('Server Connection', 'Timestamp Obtained', startedAtCounter, startedAtOffset);
       } else {
         startedAtCounter += 1;
 
