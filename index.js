@@ -5,6 +5,7 @@ class ServerConnectionOptions {
   constructor() {
     this.options = {
       mqttEndpoint: null,
+      mqttPort: null,
       mqttUsername: 'remoteclient',
       mqttPassword: null,
       hardwareType: null,
@@ -49,6 +50,7 @@ class ServerConnection {
     this.connectionId = options.get('connectionId');
 
     this.mqttEndpoint = options.get('mqttEndpoint');
+    this.mqttPort = options.get('mqttPort');
     this.mqttUsername = options.get('mqttUsername');
     this.mqttPassword = options.get('mqttPassword');
 
@@ -76,17 +78,18 @@ class ServerConnection {
     localClient = mqtt.connect('mqtt://localhost');
 
     localClient.on('connect', () => {
-      console.log('[' + parent.connectionId + ']', '[MQTT Local]', 'Connected');
+      console.log('[' + parent.connectionId + ']', '[MQTT Local]', 'Event', 'Connect');
 
       localClient.subscribe(parent.hardwareType + '/' + parent.serialNumber + '/#');
       localClient.subscribe('coordinator/#');
     });
 
     localClient.on('message', function (topic, message) {
-      console.log('[' + parent.connectionId + ']', '[MQTT Local]', 'Message', topic, message.toString());
+      console.log('[' + parent.connectionId + ']', '[MQTT Local]', 'Event', 'Message', topic, message.toString());
 
       if(parent.checkWhitelist(parent.publishWhitelist, topic)) {
         remoteClient.publish(topic, message);
+        console.log('[' + parent.connectionId + ']', '[MQTT Local]', 'Republished from Local to Remote');
       } else {
         console.log('[' + parent.connectionId + ']', '[MQTT Local]', 'Message not whitelisted');
       }
@@ -122,6 +125,10 @@ class ServerConnection {
       username: this.mqttUsername,
       password:  this.mqttPassword
     };
+
+    if(this.mqttPort !== undefined && this.mqttPort !== null) {
+      options.port = this.mqttPort;
+    }
 
     remoteClient = mqtt.connect(this.mqttEndpoint, options)
 
@@ -159,6 +166,7 @@ class ServerConnection {
 
       if(parent.checkWhitelist(parent.subscribeWhitelist, topic)) {
         localClient.publish(topic, message);
+        console.log('[' + parent.connectionId + ']', '[MQTT Remote]', 'Republishing from Remote to Local');
       } else {
         console.log('[' + parent.connectionId + ']', '[MQTT Remote]', 'Message not whitelisted');
       }
