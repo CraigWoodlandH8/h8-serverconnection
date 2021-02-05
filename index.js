@@ -82,16 +82,17 @@ class ServerConnection {
 
       localClient.subscribe(parent.hardwareType + '/' + parent.serialNumber + '/#');
       localClient.subscribe('coordinator/#');
+      localClient.subscribe('videostream/+/+/frame');
     });
 
     localClient.on('message', function (topic, message) {
-      console.log('[' + parent.connectionId + ']', '[MQTT Local]', 'Event', 'Message', topic, message.toString());
+      //console.log('[' + parent.connectionId + ']', '[MQTT Local]', 'Event', 'Message', topic, message.toString());
 
       if(parent.checkWhitelist(parent.publishWhitelist, topic)) {
         remoteClient.publish(topic, message);
-        console.log('[' + parent.connectionId + ']', '[MQTT Local]', 'Republished from Local to Remote');
+        //console.log('[' + parent.connectionId + ']', '[MQTT Local]', 'Republished from Local to Remote');
       } else {
-        console.log('[' + parent.connectionId + ']', '[MQTT Local]', 'Message not whitelisted');
+        //console.log('[' + parent.connectionId + ']', '[MQTT Local]', 'Message not whitelisted');
       }
 
       var pattern1 = new UrlPattern(':hardwareType/:serialNumber/' + parent.connectionId + '/disconnect');
@@ -162,13 +163,13 @@ class ServerConnection {
     });
 
     remoteClient.on('message', function (topic, message) {
-      console.log('[' + parent.connectionId + ']', '[MQTT Remote]', 'Event', 'Message', topic, message.toString());
+      //console.log('[' + parent.connectionId + ']', '[MQTT Remote]', 'Event', 'Message', topic, message.toString());
 
       if(parent.checkWhitelist(parent.subscribeWhitelist, topic)) {
         localClient.publish(topic, message);
-        console.log('[' + parent.connectionId + ']', '[MQTT Remote]', 'Republishing from Remote to Local');
+        //console.log('[' + parent.connectionId + ']', '[MQTT Remote]', 'Republishing from Remote to Local');
       } else {
-        console.log('[' + parent.connectionId + ']', '[MQTT Remote]', 'Message not whitelisted');
+        //console.log('[' + parent.connectionId + ']', '[MQTT Remote]', 'Message not whitelisted');
       }
 
       var presencePattern = new UrlPattern(':hardwareType/:serialNumber/state/request(/:id)');
