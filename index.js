@@ -82,7 +82,7 @@ class ServerConnection {
 
       localClient.subscribe(parent.hardwareType + '/' + parent.serialNumber + '/#');
       localClient.subscribe('coordinator/#');
-      localClient.subscribe('videostream/+/+/frame');
+      localClient.subscribe('videostream/+/+/frame/+');
     });
 
     localClient.on('message', function (topic, message) {
