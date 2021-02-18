@@ -138,6 +138,7 @@ class ServerConnection {
 
       remoteClient.subscribe(parent.hardwareType + '/' + parent.serialNumber + '/#');
       remoteClient.subscribe('coordinator/#');
+      remoteClient.subscribe('videostream/+/+/keepalive');
 
       remoteClient.publish(parent.hardwareType + '/' + parent.serialNumber + '/register-device', JSON.stringify(parent.getDeviceRegistration()));
     })
