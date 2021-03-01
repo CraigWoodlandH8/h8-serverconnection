@@ -4,9 +4,9 @@ const UrlPattern = require('url-pattern');
 class ServerConnectionOptions {
   constructor() {
     this.options = {
-      mqttEndpoint: null,
+      mqttHost: null,
       mqttPort: null,
-      mqttUsername: 'remoteclient',
+      mqttUsername: null,
       mqttPassword: null,
       hardwareType: null,
       serialNumber: null,
@@ -49,7 +49,7 @@ class ServerConnection {
     this.subscribeWhitelist = options.get('subscribeWhitelist');
     this.connectionId = options.get('connectionId');
 
-    this.mqttEndpoint = options.get('mqttEndpoint');
+    this.mqttHost = options.get('mqttHost');
     this.mqttPort = options.get('mqttPort');
     this.mqttUsername = options.get('mqttUsername');
     this.mqttPassword = options.get('mqttPassword');
@@ -120,18 +120,23 @@ class ServerConnection {
       }
     });
 
-    console.log('[' + parent.connectionId + ']', '[MQTT Remote]', 'Connecting', this.mqttEndpoint, this.serialNumber);
+    console.log('[' + parent.connectionId + ']', '[MQTT Remote]', 'Connecting', this.mqttHost, this.serialNumber);
 
-    var options = {
-      username: this.mqttUsername,
-      password:  this.mqttPassword
-    };
+    var options = { };
 
     if(this.mqttPort !== undefined && this.mqttPort !== null) {
       options.port = this.mqttPort;
     }
 
-    remoteClient = mqtt.connect(this.mqttEndpoint, options)
+    if(this.mqttUsername !== undefined && this.mqttUsername !== null) {
+      options.username = this.mqttUsername;
+    }
+
+    if(this.mqttPassword !== undefined && this.mqttPassword !== null) {
+      options.password = this.mqttPassword;
+    }
+
+    remoteClient = mqtt.connect(this.mqttHost, options)
 
     remoteClient.on('connect', function () {
       console.log('[' + parent.connectionId + ']', '[MQTT Remote]', 'Event', 'Connect');
