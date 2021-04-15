@@ -83,6 +83,7 @@ class ServerConnection {
       localClient.subscribe(parent.hardwareType + '/' + parent.serialNumber + '/#');
       localClient.subscribe('coordinator/#');
       localClient.subscribe('videostream/+/+/frame/+');
+      localClient.subscribe('local/mqtt-disconnect');
     });
 
     localClient.on('message', function (topic, message) {
@@ -95,27 +96,19 @@ class ServerConnection {
         //console.log('[' + parent.connectionId + ']', '[MQTT Local]', 'Message not whitelisted');
       }
 
-      var pattern1 = new UrlPattern(':hardwareType/:serialNumber/' + parent.connectionId + '/disconnect');
-
-      if(pattern1.match(topic)) {
+      if(topic == 'local/mqtt-disconnect') {
         console.log('[' + parent.connectionId + ']', '[MQTT Local]', 'Initiating disconnection from remote');
 
         try {
           remoteClient.end(true);
+          
+          setTimeout(() => {
+            console.log('[' + parent.connectionId + ']', '[MQTT Local]', 'Initiating reconnection from remote');
+            
+            remoteClient.reconnect();
+          }, 8000);
         } catch(err) {
           console.error('[' + parent.connectionId + ']', '[MQTT Local]', 'Error initiating disconnection from remote', err);
-        }
-      }
-
-      var pattern2 = new UrlPattern(':hardwareType/:serialNumber/' + parent.connectionId + '/connect');
-
-      if(pattern2.match(topic)) {
-        console.log('[' + parent.connectionId + ']', '[MQTT Local]', 'Initiating connection to remote');
-
-        try {
-          remoteClient.reconnect();
-        } catch(err) {
-          console.error('[' + parent.connectionId + ']', '[MQTT Local]', 'Error initiating connection to remote', err);
         }
       }
     });
