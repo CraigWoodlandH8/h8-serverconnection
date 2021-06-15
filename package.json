@@ -1,5 +1,5 @@
 {
-  "name": "@herotech8/h8-serverconnection",
+  "name": "h8-serverconnection",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
